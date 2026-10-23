@@ -17,7 +17,7 @@ class Payment(models.Model):
         ("cash", "Cash"),
         ("net_banking", "Net Banking"),
     ]
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user")
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     membership = models.ForeignKey(
         Membership, on_delete=models.CASCADE, related_name="membership"
     )

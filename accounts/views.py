@@ -1,11 +1,17 @@
 from django.shortcuts import render
-from .models import User
+from .models import User, Student
 from rest_framework.generics import (
     CreateAPIView,
     RetrieveUpdateAPIView,
     ListAPIView,
+    RetrieveUpdateDestroyAPIView,
 )
-from .serializers import SignupSerializer, UserSerializer, LoginSerializer
+from .serializers import (
+    SignupSerializer,
+    UserSerializer,
+    LoginSerializer,
+    StudentSerializer,
+)
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -33,7 +39,6 @@ class GymUsersList(ListAPIView):
         queryset = super().get_queryset()
         search = self.request.query_params.get("search")
         if search:
-
             queryset = queryset.filter(username__icontains=search)
         return queryset
 
@@ -48,7 +53,7 @@ class SignupView(CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "User Created"}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginView(APIView):
@@ -72,6 +77,7 @@ class LoginView(APIView):
                     "token": token.key,
                 }
             )
+        return Response(serializer.errors)
 
 
 class LogoutView(APIView):
@@ -94,3 +100,28 @@ class ProfileView(RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class StudentListView(ListAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = StudentSerializer
+
+    def get_queryset(self):
+        return Student.objects.all()
+
+
+class StudentCreateView(CreateAPIView):
+    permission_classes = [AllowAny]
+    queryset = Student.objects.all()
+    serializer_class = StudentSerializer
+
+
+class StudentUpdateView(RetrieveUpdateDestroyAPIView):
+    permission_classes = [AllowAny]
+    queryset = Student.objects.all()
+    serializer_class = StudentSerializer
+
+    def destroy(self, reqeust, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response({"message": "Student deleted Successfully"},status=status.HTTP_200_OK)

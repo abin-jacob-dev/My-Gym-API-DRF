@@ -6,7 +6,6 @@ from rest_framework.permissions import AllowAny
 from accounts.permissions import IsGymOwner
 from rest_framework.permissions import IsAuthenticated
 
-
 # Create your views here.
 
 
@@ -19,7 +18,10 @@ class GymListView(generics.ListAPIView):
 class GymCreateView(generics.CreateAPIView):
     queryset = Gym.objects.all()
     serializer_class = GymSerilalizer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsGymOwner]
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
 
 class GymDetailView(generics.RetrieveAPIView):
@@ -55,10 +57,16 @@ class MembershipListView(generics.ListAPIView):
 class MembershipCreateView(generics.CreateAPIView):
     queryset = Membership.objects.all()
     serializer_class = MembershipSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsGymOwner]
 
 
 class MembershipDetailView(generics.RetrieveAPIView):
     queryset = Membership.objects.all()
     serializer_class = MembershipSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_owner():
+            return Membership.objects.all()
+        return Membership.objects.filter(user=user)

@@ -51,8 +51,9 @@ class PaymentHistoryView(generics.ListAPIView):
 
     def get_queryset(self):
         if self.request.user.is_owner():
-            return Payment.objects.all()
-        return Payment.objects.filter(user=self.request.user)
+            return Payment.objects.all().order_by("-payment_date")
+
+        return Payment.objects.filter(user = self.request.user).order_by("-payment_date")
 
 
 class PaymentStatusUpdateView(APIView):
